@@ -33,7 +33,7 @@ local function generate_borders()
 end
 
 events.WORLD_RENDER:register(function (delta)
-   local from = labelLib.pos2UI(-95,70,0,-0.5)
+   local from = labelLib.pos2UI(-95,90,0,-0.5)
    local size = client:getScaledWindowSize().x+from.x - 5
    if panel.visible then
       models.hud:newSprite("preview"):texture(textures.map):pos(from.x,from.y+size,0):setSize(size,size):visible(true)
