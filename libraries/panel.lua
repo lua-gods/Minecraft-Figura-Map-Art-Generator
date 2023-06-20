@@ -6,8 +6,6 @@
 if not host:isHost() then return end
 ---@diagnostic disable: undefined-field
 
-local k2s = require("libraries.key2stringLib")
-
 
 local kitkat = require("libraries.KattEventsAPI")
 
@@ -16,7 +14,6 @@ local panel = {
    VSILIBILITY_CHANGED = kitkat.newEvent(false),
    SELECTED_CHANGED = kitkat.newEvent(),
    RENDER_UPDATE = kitkat.newEvent(),
-
    scroll_dir = 0,
    selected_index = 1,
    visible = false,
@@ -297,7 +294,7 @@ events.WORLD_RENDER:register(function (delta)
                   state = "hover"
                end
             end
-            local labels = element:update(vectors.vec2(0,-1),vectors.vec2(95,(math.min(#panel.current_page.elements,client:getScaledWindowSize().y/20)-i+1)*10 + panel.selected_index * 10),state)
+            local labels = element:update(vectors.vec2(0,-1),vectors.vec2(95,(math.min(#panel.current_page.elements,client:getScaledWindowSize().y/20)-i+1)*10),state)
             if not labels then
                error("Element labels not returned")
             end

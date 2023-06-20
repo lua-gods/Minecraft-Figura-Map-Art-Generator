@@ -112,7 +112,7 @@ events.MOUSE_SCROLL:register(function (dir)
    local current = root.current_page.elements[root.selected_index]
    if type(current) == "panelslider" then
       if root and root.is_pressed then
-         current.selected = (current.selected - 1 + dir) % current.count + 1
+         current.selected = math.clamp(current.selected + dir,1,current.count)
          current.root:update()
          current.ON_SLIDE:invoke(current.selected)
          root.UIplaySound(root.config.theme.sounds.select.id,math.lerp(0.5,1.5,current.selected/current.count),root.config.theme.sounds.select.volume)
