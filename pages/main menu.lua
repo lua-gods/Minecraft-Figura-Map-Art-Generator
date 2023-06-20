@@ -3,8 +3,11 @@ local page = panel:newPage()
 local labelLib = require("libraries.GNLabelLib")
 
 local map = require("map generator")
+textures:newTexture("preview",128,128):applyFunc(0,0,128,128,function ()
+   return vectors.vec4(math.random(),math.random(),math.random(),1)
+end)
 
-page:newElement("slider"):setText("Source / Preview"):setItemCount(5)
+local preview_slider = page:newElement("slider"):setText("Source / Preview"):setItemCount(5)
 
 page:newElement("margin")
 page:newElement("toggleButton"):setText("Depth")
@@ -32,13 +35,21 @@ local function generate_borders()
    end
 end
 
+local task_orig = models.hud:newSprite("previewOriginal"):texture(textures.map)
+local task_gen = models.hud:newSprite("previewGenerated"):texture(textures.preview)
+
 events.WORLD_RENDER:register(function (delta)
    local from = labelLib.pos2UI(-95,90,0,-0.5)
    local size = client:getScaledWindowSize().x+from.x - 5
    if panel.visible then
-      models.hud:newSprite("preview"):texture(textures.map):pos(from.x,from.y+size,0):setSize(size,size):visible(true)
+      task_orig:pos(from.x,from.y+size,0):setSize(size,size):visible(true)
+      local mat = matrices.mat4()
+      mat.c1 = vectors.vec4(1,0,1,0)
+      mat:translate(from.x,from.y+size,(preview_slider.selected - 1) / (preview_slider.count - 1) * size)
+      task_gen:setMatrix(mat):setSize(size,size):visible(true)
    else
-      models.hud:newSprite("preview"):visible(false)
+      task_orig:visible(false)
+      task_gen:visible(false)
    end
 end)
 
