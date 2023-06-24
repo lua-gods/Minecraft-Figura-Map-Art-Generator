@@ -3,14 +3,48 @@ local page = panel:newPage()
 local labelLib = require("libraries.GNLabelLib")
 
 local map = require("map generator")
-textures:newTexture("preview",128,128):applyFunc(0,0,128,128,function ()
-   return vectors.vec4(math.random(),math.random(),math.random(),1)
+
+local task_orig = models.hud:newSprite("previewOriginal"):texture(textures.map)
+local task_gen = models.hud:newSprite("previewGenerated"):texture(textures.preview)
+
+local preview_slider = page:newElement("slider"):setText("Preview / Source"):setItemCount(5)
+page:newElement("slider"):setText("Preview Type"):setItemCount(3).ON_SLIDE:register(function (i)
+   if i == 1 then
+      task_gen:texture(textures.preview)
+   elseif i == 2 then
+      task_gen:texture(textures.preview_heightmap)
+   elseif i == 3 then
+      task_gen:texture(textures.instruction)
+   end
 end)
 
-local preview_slider = page:newElement("slider"):setText("Source / Preview"):setItemCount(5)
-
 page:newElement("margin")
-page:newElement("toggleButton"):setText("Depth")
+local depth_toggle = page:newElement("toggleButton"):setText("Depth")
+depth_toggle.toggle = true
+depth_toggle.ON_TOGGLE:register(function (toggle)
+   map.shade = toggle
+   map:startGenerating()
+end)
+
+local generate = false
+page:newElement("button"):setText("Generate").ON_PRESS:register(function ()
+   generate = not generate
+end)
+
+local wait = 0
+events.TICK:register(function ()
+   for i = 1, 20, 1 do
+      if generate then
+         wait = wait + 1
+         if wait == 2 then
+            wait = 0
+            host:sendChatCommand(map.instruction[1])
+            table.remove(map.instruction,1)
+         end
+      end
+   end
+end)
+
 page:newElement("margin")
 
 page:newElement("slider"):setText("Split Width").ON_SLIDE:register(function (value)
@@ -35,11 +69,10 @@ local function generate_borders()
    end
 end
 
-local task_orig = models.hud:newSprite("previewOriginal"):texture(textures.map)
-local task_gen = models.hud:newSprite("previewGenerated"):texture(textures.preview)
+
 
 events.WORLD_RENDER:register(function (delta)
-   local from = labelLib.pos2UI(-95,90,0,-0.5)
+   local from = labelLib.pos2UI(-95,100,0,-0.5)
    local size = client:getScaledWindowSize().x+from.x - 5
    if panel.visible then
       task_orig:pos(from.x,from.y+size,0):setSize(size,size):visible(true)
