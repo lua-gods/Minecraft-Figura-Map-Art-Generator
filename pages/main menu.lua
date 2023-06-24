@@ -45,6 +45,16 @@ events.TICK:register(function ()
    end
 end)
 
+local clear_timer = 999
+
+page:newElement("button"):setText("Clear").ON_PRESS:register(function ()
+   host:sendChatCommand("//pos1 "..map.map_pos.x..",".."-64"..","..map.map_pos.y)
+   host:sendChatCommand("//pos2 "..(map.map_pos.x+127)..",".."256"..","..(map.map_pos.y+127))
+   host:sendChatCommand("//set air")
+end)
+
+
+
 page:newElement("margin")
 
 page:newElement("slider"):setText("Split Width").ON_SLIDE:register(function (value)
