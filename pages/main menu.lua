@@ -2,21 +2,13 @@ local panel = require("libraries.panel")
 local page = panel:newPage()
 local labelLib = require("libraries.GNLabelLib")
 
+local split = vectors.vec2(1,1)
 local map = require("map generator")
 
 local task_orig = models.hud:newSprite("previewOriginal"):texture(textures.map)
 local task_gen = models.hud:newSprite("previewGenerated"):texture(textures.preview)
 
 local preview_slider = page:newElement("slider"):setText("Preview / Source"):setItemCount(5)
-page:newElement("slider"):setText("Preview Type"):setItemCount(3).ON_SLIDE:register(function (i)
-   if i == 1 then
-      task_gen:texture(textures.preview)
-   elseif i == 2 then
-      task_gen:texture(textures.preview_heightmap)
-   elseif i == 3 then
-      task_gen:texture(textures.instruction)
-   end
-end)
 
 page:newElement("margin")
 local depth_toggle = page:newElement("toggleButton"):setText("Depth")
@@ -29,6 +21,11 @@ end)
 local generate = false
 page:newElement("button"):setText("Generate").ON_PRESS:register(function ()
    generate = not generate
+   if generate then
+      map.startGenerating(split.x,split.y)
+   else
+      map.buisy = false
+   end
 end)
 
 local wait = 0
@@ -46,8 +43,6 @@ events.TICK:register(function ()
       end
    end
 end)
-
-local clear_timer = 999
 
 page:newElement("button"):setText("Clear").ON_PRESS:register(function ()
    host:sendChatCommand("//pos1 "..map.map_pos.x..",".."-64"..","..map.map_pos.y)
