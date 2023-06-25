@@ -22,7 +22,7 @@ local generate = false
 page:newElement("button"):setText("Generate").ON_PRESS:register(function ()
    generate = not generate
    if generate then
-      map.startGenerating(split.x,split.y)
+      map.startGenerating()
    else
       map.buisy = false
    end
@@ -30,16 +30,12 @@ end)
 
 local wait = 0
 events.TICK:register(function ()
+   if generate then
    for i = 1, 20, 1 do
-      if generate then
-         wait = wait + 1
-         if wait == 2 then
-            wait = 0
-            if map.instruction[1] then
-               host:sendChatCommand(map.instruction[1])
-               table.remove(map.instruction,1)
-            end
-         end
+      if map.instruction[1] then
+         host:sendChatCommand(map.instruction[1])
+         table.remove(map.instruction,1)
+      end
       end
    end
 end)

@@ -129,8 +129,6 @@ local pres = 2
 local pratio = 128/pres
 local py = 0
 local preview = textures:newTexture("preview",128,128)
-local heightmap = textures:newTexture("preview_heightmap",128,128)
-local prestruction = textures:newTexture("instruction",128,128)
 
 local source_queue = {}
 
@@ -148,6 +146,9 @@ function map.startGenerating()
    pI = 1
    pres = 2
    pratio = 128/pres
+   table.insert(map.instruction,"//pos1 "..map.map_pos.x..",".."-64"..","..map.map_pos.y)
+   table.insert(map.instruction,"//pos2 "..(map.map_pos.x + 127 * map.map_size.x * map.map_size.y)..",".."256"..","..(map.map_pos.y+127))
+   table.insert(map.instruction,"//set air")
 end
 
 local source = textures.map
@@ -194,7 +195,7 @@ end
 
 events.TICK:register(function ()
    if map.buisy or map.preview_mode then
-      for _ = 1, 128, 1 do
+      for _ = 1, 64, 1 do
          if map.buisy or map.preview_mode  then
             if phase == 0 then
                local clr,h,cid = map.findClosestMapColor(
@@ -216,9 +217,7 @@ events.TICK:register(function ()
                   px = 0
                   py = py + 1
                   preview:update()
-                  --heightmap:update()
                   progress("Generating Map",(px+py)/pres)
-                  prestruction:update()
                   if py > pres-1 then
                      px = 0
                      py = 0
@@ -235,7 +234,14 @@ events.TICK:register(function ()
                local offset = p[2]
                height = height + offset
                local current_pos = vectors.vec3(px, height, py)
-               table.insert(map.instruction,"/setblock "..map.map_pos.x + splitX * 128 + current_pos.x.." "..current_pos.y.." "..map.map_pos.y + current_pos.z.." "..map.colors[block_id].blk)
+               if py == 0 then
+                  table.insert(map.instruction,"/setblock "..map.map_pos.x + (splitX + splitY * map.map_size.x) * 128 + current_pos.x.." 128 "..map.map_pos.y.." minecraft:cobblestone")
+                  if px == 0 then
+                     table.insert(map.instruction,"/tp @s "..(map.map_pos.x + 64 + 128 * (splitX + splitY * map.map_size.x)).." ~ "..(map.map_pos.y+64))
+                  end
+               end
+               
+               table.insert(map.instruction,"/setblock "..map.map_pos.x + (splitX + splitY * map.map_size.x) * 128 + current_pos.x.." "..current_pos.y.." "..map.map_pos.y + current_pos.z.." "..map.colors[block_id].blk)
                last_block_id = block_id
                last_offset = offset
                py = py + 1
