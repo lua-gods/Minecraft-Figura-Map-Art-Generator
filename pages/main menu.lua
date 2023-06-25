@@ -38,8 +38,10 @@ events.TICK:register(function ()
          wait = wait + 1
          if wait == 2 then
             wait = 0
-            host:sendChatCommand(map.instruction[1])
-            table.remove(map.instruction,1)
+            if map.instruction[1] then
+               host:sendChatCommand(map.instruction[1])
+               table.remove(map.instruction,1)
+            end
          end
       end
    end
@@ -52,8 +54,6 @@ page:newElement("button"):setText("Clear").ON_PRESS:register(function ()
    host:sendChatCommand("//pos2 "..(map.map_pos.x+127)..",".."256"..","..(map.map_pos.y+127))
    host:sendChatCommand("//set air")
 end)
-
-
 
 page:newElement("margin")
 
