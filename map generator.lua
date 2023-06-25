@@ -74,7 +74,9 @@ local map = {
    --{"7fa796",nil}, -- "Glow Lichen"
    },
    instruction = {},
-   pre = {}
+   pre = {},
+   buisy = false,
+   preview_mode = true
 }
 
 for _, value in pairs(map.colors) do value.clr = vectors.hexToRGB(value.clr) end
@@ -122,7 +124,6 @@ end
 
 local pI = 1
 local phase = 0
-local buisy = false
 local px = 0
 local pres = 2
 local pratio = 128/pres
@@ -139,8 +140,9 @@ function map.queueMap(texture)
 end
 
 function map.startGenerating()
+   map.preview_mode = false
    phase = 0
-   buisy = true
+   map.buisy = true
    px = 0
    py = 0
    pI = 1
@@ -183,15 +185,22 @@ local height = 128
 local line_origin
 local block_line
 
+local splitX = 0
+local splitY = 0
+
+local function progress(message,percentage)
+   host:setActionbar('[{"text":"'..message..'"},{"color":"red","text":"'..("|"):rep(percentage*20)..'"},{"color":"black","text":"'..("|"):rep((1-percentage)*20)..'"}]')
+end
+
 events.TICK:register(function ()
-   if buisy then
+   if map.buisy or map.preview_mode then
       for _ = 1, 128, 1 do
-         if buisy then
+         if map.buisy or map.preview_mode  then
             if phase == 0 then
                local clr,h,cid = map.findClosestMapColor(
                   source:getPixel(
-                     math.clamp((px * pratio),0,127) / 128 * source_res.x,
-                     math.clamp((py * pratio),0,127) / 128 * source_res.y).xyz)
+                     math.map(math.clamp((px * pratio),0,128) / 128,0,1,splitX/map.map_size.x,(splitX+1)/map.map_size.x) * source_res.x,
+                     math.map(math.clamp((py * pratio),0,128) / 128,0,1,splitY/map.map_size.y,(splitY+1)/map.map_size.y) * source_res.y).xyz)
                preview:fill(px * pratio,py * pratio,pratio,pratio,clr)
                --heightmap:fill(px * pratio,py * pratio,pratio,pratio,vectors.vec4(h,h,h,1))
                --prestruction:fill(px * pratio,py * pratio,pratio,pratio,vectors.vec4((cid-1)/128,h,0,1))
@@ -208,6 +217,7 @@ events.TICK:register(function ()
                   py = py + 1
                   preview:update()
                   --heightmap:update()
+                  progress("Generating Map",(px+py)/pres)
                   prestruction:update()
                   if py > pres-1 then
                      px = 0
@@ -216,29 +226,42 @@ events.TICK:register(function ()
                      pratio = 128/pres
                      if pI <= 6 then pI = pI + 1 else
                         phase = 1
-                        py = 0
-                        px = 0
                      end
                   end
                end
-            elseif phase == 1 and type(map.map_pos) ~= "nil" then
+            elseif phase == 1 and type(map.map_pos) ~= "nil" and not map.preview_mode then
                local p = map:getPixel(px,py)
                local block_id = p[1]
                local offset = p[2]
                height = height + offset
                local current_pos = vectors.vec3(px, height, py)
-               table.insert(map.instruction,"/setblock "..map.map_pos.x + current_pos.x.." "..current_pos.y.." "..map.map_pos.y + current_pos.z.." "..map.colors[block_id].blk)
+               table.insert(map.instruction,"/setblock "..map.map_pos.x + splitX * 128 + current_pos.x.." "..current_pos.y.." "..map.map_pos.y + current_pos.z.." "..map.colors[block_id].blk)
                last_block_id = block_id
                last_offset = offset
                py = py + 1
+               progress("Generating Instructions",(px)/128)
                if py >= 128 then
                   py = 0
                   px = px + 1
                   height = 128
                   last_offset = 0
                   if px >= 128 then
-                     buisy = false
-                     print("Finished")
+                     phase = 0
+                     splitX = splitX + 1
+                     px = 0
+                     py = 0
+                     pI = 1
+                     pres = 2
+                     print("Generating section "..splitX.." "..splitY)
+                     pratio = 128/pres
+                     if splitX >= map.map_size.x then
+                        splitY = splitY + 1
+                        splitX = 0
+                        if splitY >= map.map_size.y then
+                           map.buisy = false
+                           print("Finished pregenerating eveerything")
+                        end
+                     end
                   end
                end
             end
@@ -246,5 +269,4 @@ events.TICK:register(function ()
       end
    end
 end)
-map.startGenerating()
 return map
