@@ -168,7 +168,7 @@ function map.findClosestMapColor(rgb)
          if map.shade then
             clr = clr * shata.shade
          end
-         local d = (clr-rgb):length()
+         local d = (clr-(rgb)):length()
          if d < dist then
             final_color = clr
             shade = shata.height_offset
@@ -235,7 +235,11 @@ events.TICK:register(function ()
                height = height + offset
                local current_pos = vectors.vec3(px, height, py)
                if py == 0 then
-                  table.insert(map.instruction,"/setblock "..map.map_pos.x + (splitX + splitY * map.map_size.x) * 128 + current_pos.x.." 128 "..map.map_pos.y.." minecraft:cobblestone")
+                  table.insert(map.instruction,"/fill "..
+                  map.map_pos.x + (splitX + splitY * map.map_size.x) * 128 + current_pos.x.." 128 "..(map.map_pos.y-1).." "..
+                  map.map_pos.x + (splitX + splitY * map.map_size.x) * 128 + current_pos.x.." 319 "..(map.map_pos.y-1)
+                  .." minecraft:air")
+                  table.insert(map.instruction,"/setblock "..map.map_pos.x + (splitX + splitY * map.map_size.x) * 128 + current_pos.x.." 128 "..(map.map_pos.y-1).." minecraft:cobblestone")
                   if px == 0 then
                      table.insert(map.instruction,"/tp @s "..(map.map_pos.x + 64 + 128 * (splitX + splitY * map.map_size.x)).." ~ "..(map.map_pos.y+64))
                   end
